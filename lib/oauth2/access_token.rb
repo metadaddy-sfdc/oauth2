@@ -95,7 +95,13 @@ module OAuth2
     # @see Client#request
     def request(verb, path, opts={}, &block)
       set_token(opts)
-      @client.request(verb, path, opts, &block)
+      response = @client.request(verb, path, opts, &block)
+      if response.status == 401 && refresh_token
+        @token = refresh!.token
+        set_token(opts)
+        response = @client.request(verb, path, opts, &block)
+      end
+      response      
     end
 
     # Make a GET request with the Access Token
